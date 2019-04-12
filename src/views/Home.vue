@@ -2,19 +2,25 @@
   <div class="home">
     <h1>{{ message }}</h1>
     <hr>
-    <div v-for="product in products">
-      <p>{{ product.name }}</p>
-      <p>{{ product.formatted['price'] }}</p>
-        <!-- <p>name: <input type="text" v-model="product.name"></p>
-        <p>description: <input type="text" v-model="product.description"></p>
-        <p>price: <input type="text" v-model="product.price"></p>
-        <p>image_url: <input type="text" v-model="product.image_url"></p> -->
-      <!--    <button v-on:click="updateProduct(product)">Update Product</button>
-         <button v-on:click="deleteProduct(product)">Delete Product</button> -->
-
-        <router-link v-bind:to="'/products/' + product.id">Info</router-link>
-    
-      <hr>
+    <input type="text" v-model="nameFilter" list="names"><!-- This has no use at this moment -->
+    <datalist id="names"> <!-- This has no use at this moment -->
+    <option v-for="product in products">{{product.name}}</option>
+    </datalist>
+    <button v-on:click="changeSortTerm('name')">Sort by name</button>
+    <button v-on:click="changeSortTerm('price')">Sort by price</button>
+    <div class="card-group">
+      <transition-group class="row" appear enter-active-class="animated rollIn" leave-active-class="animated zoomOutUp">
+      <div v-for="product in orderBy(filterBy(products, nameFilter), sortTerm)" v-bind:key="product.id">
+        <div class="card" style="width: 18rem;">
+          <div class="card-body">
+            <h5 class="card-title">{{ product.name }}</h5>
+            <p class="card-text">{{ product.formatted['price'] }}</p>
+            <button v-on:click="removeProduct(product)">Remove</button>
+            <a v-bind:href="'/products/' + product.id" class="btn btn-primary">More Info</a> 
+          </div>
+        </div>      
+      </div>
+    </transition-group>
     </div>
   </div>
 </template>
@@ -27,16 +33,15 @@
 
 <script>
 import axios from "axios";
+import Vue2Filters from 'vue2-filters'
 export default {
+  mixins: [Vue2Filters.mixin],
   data: function() {
     return {
       message: "Products",
       products: [],
-      newProductName: "",
-      newProductPrice: "",
-      newProductDescription: "",
-      newProductImage_url: "",
-      currentProduct: []
+      nameFilter: "",
+      sortTerm: ""
     };
   },
   created: function() {
@@ -45,39 +50,13 @@ export default {
     });
   },
   methods: {
-    toggleInfo: function(theProduct) {
-      if (this.currentProduct === theProduct) {
-        this.currentProduct = {};
-      } else { 
-        this.currentProduct = theProduct;
-      }
+    removeProduct: function(product) {
+      var index = this.products.indexOf(product);
+      this.products.splice(index,1);
     },
-    updateProduct: function(theProduct) {
-      console.log('updating the product...');
-      var params = {
-        name: theProduct.name,
-        price: theProduct.price,
-        description: theProduct.description,
-        image_url: theProduct.image_url
-      };
-      axios.patch("/api/products/" + theProduct.id, params).then(response => { 
-        console.log(response);
-        theProduct = response.data;
-      });
-    },
-    deleteProduct: function(theProduct) {
-      console.log('deleting product');
-      var params = {
-        id: theProduct.id
-      };
-      var index = this.products.indexOf(theProduct);
-      console.log(index);
-      this.products.splice(index, 1);
-      
-      axios.delete("/api/products/" + theProduct.id, params).then(response => {
-        console.log(response);
-        theProduct = response.data;
-      });
+    changeSortTerm: function(input) {
+      console.log(input);
+      this.sortTerm = input;  
     }
   }
 };

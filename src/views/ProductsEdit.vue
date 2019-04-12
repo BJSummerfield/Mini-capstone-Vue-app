@@ -1,4 +1,4 @@
-ProductsEdit.vue<template>
+git ProductsEdit.vue<template>
   <div class="edit">
     <h1>{{ message }}</h1>
     <hr>
